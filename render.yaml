@@ -31,7 +31,6 @@ services:
   - type: web
     name: sru-hostel-frontend
     env: static
-    region: oregon
     plan: free
     buildCommand: "cd frontend && npm install && npm run build"
     staticPublishPath: "./frontend/dist"

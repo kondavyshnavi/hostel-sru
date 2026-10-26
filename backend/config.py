@@ -37,8 +37,12 @@ class Config:
                 "with at least 32 characters must be set in production via environment variables."
             )
     
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f"sqlite:///{os.path.join(basedir, 'hostel_management.db')}")
+    # Database connection URI (auto-replaces legacy postgres:// with postgresql:// if needed by Render)
+    _db_url = os.getenv('DATABASE_URL', f"sqlite:///{os.path.join(basedir, 'hostel_management.db')}")
+    if _db_url and _db_url.startswith('postgres://'):
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+
+    SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Uploads / QR codes

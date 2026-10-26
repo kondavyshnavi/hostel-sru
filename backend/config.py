@@ -37,10 +37,13 @@ class Config:
                 "with at least 32 characters must be set in production via environment variables."
             )
     
-    # Database connection URI (auto-replaces legacy postgres:// with postgresql:// if needed by Render)
+    # Database connection URI (auto-replaces legacy postgres:// or standard postgresql:// with postgresql+psycopg2://)
     _db_url = os.getenv('DATABASE_URL', f"sqlite:///{os.path.join(basedir, 'hostel_management.db')}")
-    if _db_url and _db_url.startswith('postgres://'):
-        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    if _db_url:
+        if _db_url.startswith('postgres://'):
+            _db_url = _db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+        elif _db_url.startswith('postgresql://') and not _db_url.startswith('postgresql+'):
+            _db_url = _db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
 
     SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False

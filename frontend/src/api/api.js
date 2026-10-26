@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// Use environment variable VITE_API_URL if configured (for separated cloud hosting like Render/Vercel)
+// Otherwise fallback to relative '/api' (for local Vite proxy and Docker Nginx reverse proxy)
+const baseURL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
+  : '/api';
+
 const API = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

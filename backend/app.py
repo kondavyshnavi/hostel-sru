@@ -98,6 +98,18 @@ def create_app(config_class=Config):
             db.create_all()
             print("Database tables initialized successfully!")
 
+    # Auto-initialize database tables and seed accounts on startup if needed
+    try:
+        with app.app_context():
+            db.create_all()
+            # Auto-seed initial accounts if not present
+            from models import User
+            if not User.query.filter_by(username='admin').first():
+                from seed import seed_database
+                seed_database()
+    except Exception as e:
+        app.logger.error(f"Database initialization notice: {e}")
+
     return app
 
 if __name__ == '__main__':

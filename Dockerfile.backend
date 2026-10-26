@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies for MySQL client and Pillow image processing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ .
+
+# Ensure data directories exist for SQLite persistence and QR codes
+RUN mkdir -p /app/data /app/static/qrcodes
+
+EXPOSE 5000
+
+ENV FLASK_APP=app.py
+ENV PYTHONUNBUFFERED=1
+
+# Use Gunicorn production WSGI server
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--threads", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]

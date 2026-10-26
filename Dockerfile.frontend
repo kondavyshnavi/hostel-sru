@@ -1,0 +1,35 @@
+# Stage 1: Build static React + Vite bundle
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY frontend/package*.json ./
+RUN npm ci || npm install
+
+COPY frontend/ .
+
+# Accept optional API URL build arg if ever connecting to a separate domain directly
+ARG VITE_API_URL=""
+ENV VITE_API_URL=${VITE_API_URL}
+
+RUN npm run build
+
+# Stage 2: High-performance Nginx production server
+FROM nginx:1.25-alpine
+
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built frontend assets
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy optimized Nginx reverse proxy configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Health check to ensure Nginx is serving traffic
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

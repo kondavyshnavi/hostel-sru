@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Node / Frontend
+**/node_modules
+**/dist
+**/build
+**/.npm
+**/.vite
+
+# Python / Backend
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/venv
+**/env
+**/.venv
+
+# Local SQLite databases & temporary instances
+**/*.db
+**/*.sqlite3
+**/instance
+**/.coverage
+**/htmlcov
+
+# IDEs & System files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.log

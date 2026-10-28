@@ -102,11 +102,23 @@ def create_app(config_class=Config):
     try:
         with app.app_context():
             db.create_all()
-            # Auto-seed initial accounts if not present
             from models import User
-            if not User.query.filter_by(username='admin').first():
-                from seed import seed_database
-                seed_database()
+            # Ensure admin exists with verified password
+            admin_user = User.query.filter_by(username='admin').first()
+            if not admin_user:
+                admin_user = User(username='admin', email='admin@sruhostel.edu', role='admin')
+                admin_user.set_password('Admin@123')
+                db.session.add(admin_user)
+                db.session.commit()
+            else:
+                # Update password hash if needed so Admin@123 always matches
+                if not admin_user.check_password('Admin@123'):
+                    admin_user.set_password('Admin@123')
+                    db.session.commit()
+
+            # Ensure demo staff and residents are seeded
+            from seed import seed_database
+            seed_database()
     except Exception as e:
         app.logger.error(f"Database initialization notice: {e}")
 

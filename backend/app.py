@@ -109,29 +109,46 @@ def create_app(config_class=Config):
             db.create_all()
             print("Database tables initialized successfully!")
 
-    # Auto-initialize database tables and seed accounts on startup if needed
+    # Auto-initialize database tables and essential demo accounts on startup
     try:
         with app.app_context():
             db.create_all()
             from models import User
-            # Ensure admin exists with verified password
-            admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
-                admin_user = User(username='admin', email='admin@sruhostel.edu', role='admin')
-                admin_user.set_password('Admin@123')
-                db.session.add(admin_user)
-                db.session.commit()
-            else:
-                # Update password hash if needed so Admin@123 always matches
-                if not admin_user.check_password('Admin@123'):
-                    admin_user.set_password('Admin@123')
-                    db.session.commit()
 
-            # Ensure demo staff and residents are seeded (pass current app to avoid recursion)
-            from seed import seed_database
-            seed_database(app)
+            # Define all demo accounts: (username, email, role, password)
+            demo_accounts = [
+                ('admin',        'admin@sruhostel.edu',          'admin',    'Admin@123'),
+                ('staff_rajesh', 'rajesh.staff@sruhostel.edu',   'staff',    'Staff@123'),
+                ('staff_priya',  'priya.staff@sruhostel.edu',    'staff',    'Staff@123'),
+                ('rahul_sharma', 'rahul.cse@sru.edu.in',         'resident', 'Student@123'),
+                ('sneha_reddy',  'sneha.cse@sru.edu.in',         'resident', 'Student@123'),
+                ('arjun_varma',  'arjun.cse@sru.edu.in',         'resident', 'Student@123'),
+                ('ananya_singh', 'ananya.ece@sru.edu.in',        'resident', 'Student@123'),
+                ('karthik_rao',  'karthik.mech@sru.edu.in',      'resident', 'Student@123'),
+            ]
+
+            changed = False
+            for username, email, role, password in demo_accounts:
+                u = User.query.filter_by(username=username).first()
+                if not u:
+                    u = User(username=username, email=email, role=role)
+                    u.set_password(password)
+                    db.session.add(u)
+                    app.logger.info(f"Created account: {username}")
+                    changed = True
+                else:
+                    # Always ensure password is correct
+                    if not u.check_password(password):
+                        u.set_password(password)
+                        changed = True
+                        app.logger.info(f"Reset password for: {username}")
+
+            if changed:
+                db.session.commit()
+                app.logger.info("Demo accounts initialized successfully.")
+
     except Exception as e:
-        app.logger.error(f"Database initialization notice: {e}")
+        app.logger.error(f"Database initialization error: {e}")
 
     return app
 

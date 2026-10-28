@@ -15,18 +15,20 @@ def seed_database():
         print("Creating all database tables...")
         db.create_all()
 
-        # Check if already seeded
-        if User.query.filter_by(username='admin').first():
-            print("Database already contains seed data. Skipping re-seeding.")
+        # Check if demo data already exists (use staff as marker, not admin)
+        if User.query.filter_by(username='staff_rajesh').first():
+            print("Demo accounts already seeded. Skipping re-seeding.")
             return
 
         print("Seeding initial data...")
 
         # 1. Users
-        # Admin
-        admin = User(username='admin', email='admin@sruhostel.edu', role='admin')
-        admin.set_password('Admin@123')
-        db.session.add(admin)
+        # Admin (created by app.py on startup; just get reference here)
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(username='admin', email='admin@sruhostel.edu', role='admin')
+            admin.set_password('Admin@123')
+            db.session.add(admin)
 
         # Maintenance Staff
         staff1 = User(username='staff_rajesh', email='rajesh.staff@sruhostel.edu', role='staff')

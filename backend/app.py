@@ -127,9 +127,9 @@ def create_app(config_class=Config):
                     admin_user.set_password('Admin@123')
                     db.session.commit()
 
-            # Ensure demo staff and residents are seeded
+            # Ensure demo staff and residents are seeded (pass current app to avoid recursion)
             from seed import seed_database
-            seed_database()
+            seed_database(app)
     except Exception as e:
         app.logger.error(f"Database initialization notice: {e}")
 

@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, date, timedelta, time
-from app import create_app
 from database import db
 from models import (
     User, Resident, Hostel, Room, RoomAllocation, Fee, Payment,
@@ -9,8 +8,14 @@ from models import (
 )
 from utils.qr_generator import generate_qr_code_image
 
-def seed_database():
-    app = create_app()
+def seed_database(app=None):
+    """Seed the database with demo data. Pass existing Flask app to avoid circular import recursion."""
+    if app is None:
+        from app import create_app
+        app = create_app()
+    _run_seed(app)
+
+def _run_seed(app):
     with app.app_context():
         print("Creating all database tables...")
         db.create_all()

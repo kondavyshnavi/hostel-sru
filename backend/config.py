@@ -15,7 +15,7 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES_HOURS', 24)))
 
     # Allowed CORS Origins
-    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173')
+    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://sru-hostel-frontend.onrender.com')
 
     # Security check: Fail safely if required production secrets are missing or weak
     INSECURE_SECRETS = [

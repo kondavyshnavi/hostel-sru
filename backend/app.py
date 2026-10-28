@@ -27,22 +27,33 @@ def create_app(config_class=Config):
     db.init_app(app)
     limiter.init_app(app)
 
-    # Enable CORS for API requests restricted to configured frontend origins
+    # Enable CORS for all API requests (handle preflight OPTIONS + actual requests)
+    @app.before_request
+    def handle_cors_preflight():
+        if request.method == 'OPTIONS' and request.path.startswith('/api/'):
+            origin = request.headers.get('Origin', '')
+            allowed_origins = [o.strip() for o in app.config.get('FRONTEND_URL', '').split(',') if o.strip()]
+            if origin in allowed_origins or not app.config.get('IS_PRODUCTION', False):
+                from flask import make_response
+                resp = make_response('', 204)
+                resp.headers['Access-Control-Allow-Origin'] = origin
+                resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+                resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Content-Type,Authorization')
+                resp.headers['Access-Control-Allow-Credentials'] = 'true'
+                resp.headers['Access-Control-Max-Age'] = '86400'
+                return resp
+
     @app.after_request
     def add_cors_headers(response):
         if request.path.startswith('/api/'):
-            origin = request.headers.get('Origin')
+            origin = request.headers.get('Origin', '')
             allowed_origins = [o.strip() for o in app.config.get('FRONTEND_URL', '').split(',') if o.strip()]
-            if origin:
-                # In production require origin to match whitelist; in development allow localhost origins
-                if origin in allowed_origins or not app.config.get('IS_PRODUCTION', False):
-                    response.headers['Access-Control-Allow-Origin'] = origin
-                    response.headers.add('Vary', 'Origin')
-                    response.headers['Access-Control-Allow-Credentials'] = 'true'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-            requested_headers = request.headers.get('Access-Control-Request-Headers')
-            if requested_headers:
-                response.headers['Access-Control-Allow-Headers'] = requested_headers
+            if origin in allowed_origins or not app.config.get('IS_PRODUCTION', False):
+                response.headers['Access-Control-Allow-Origin'] = origin
+                response.headers['Vary'] = 'Origin'
+                response.headers['Access-Control-Allow-Credentials'] = 'true'
+                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
 
     # Ensure static folders exist

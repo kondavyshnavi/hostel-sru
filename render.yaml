@@ -18,10 +18,7 @@ services:
       - key: JWT_ACCESS_TOKEN_EXPIRES_HOURS
         value: "24"
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: sru-hostel-frontend
-          property: host
+        value: https://sru-hostel-frontend.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: sru-hostel-db
@@ -39,10 +36,7 @@ services:
         destination: "/index.html"
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: sru-hostel-backend
-          property: host
+        value: https://sru-hostel-backend.onrender.com
 
 databases:
   # Managed PostgreSQL Database (Free tier on Render, compatible with SQLAlchemy models)
